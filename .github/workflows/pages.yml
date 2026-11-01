@@ -25,9 +25,14 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      # Dependencies are vendored; there is no install/build step.
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
       - run: npm run check
       - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
 
   deploy:
     # ChatGPT Sites is the primary host. Pages publishing is an explicit opt-in.
@@ -46,6 +51,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

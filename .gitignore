@@ -6,3 +6,10 @@ node_modules/
 .openai/
 .DS_Store
 Thumbs.db
+
+test-results/
+playwright-report/
+*.blend1
+.site-release/
+artifacts/
+dist/
