@@ -2,11 +2,20 @@
 
 An original browser squash game with a procedural 3D glass court, articulated athletes, a ballistic shot planner and a tactical AI opponent. No original arcade game assets or ROMs are included.
 
-## GitHub and releases
+## Play online
 
-See [GITHUB_SETUP.md](GITHUB_SETUP.md) to upload the source, develop locally, publish a playable GitHub Pages site, and create versioned releases. The included workflow runs checks on pull requests and publishes `dist/` from `main` after Pages is enabled.
+[![Play RALLY](https://img.shields.io/badge/Play_RALLY-Open_game-9acd32?style=for-the-badge)](https://rally-squash-rahbar.fuzzycoin2.chatgpt.site)
+[![Request access](https://img.shields.io/badge/Request_access-Email_Rahbar-2563eb?style=for-the-badge)](mailto:rahbar916@gmail.com?subject=RALLY%20Squash%20Club%20access%20request&body=Hi%20Rahbar%2C%0D%0A%0D%0AI'd%20like%20access%20to%20RALLY%20-%20Squash%20Club.%0D%0A%0D%0AMy%20ChatGPT%20account%20email%3A%20%0D%0AName%20(optional)%3A%20%0D%0A%0D%0AGame%3A%20https%3A%2F%2Frally-squash-rahbar.fuzzycoin2.chatgpt.site%0D%0A%0D%0AThank%20you!)
 
-## Play
+**[Open RALLY — Squash Club](https://rally-squash-rahbar.fuzzycoin2.chatgpt.site)** in your browser. No download or local setup is needed.
+
+The hosted game is invitation-only. If you already have access, sign in with the ChatGPT account whose email address was invited.
+
+**Need access?** Click **Request access** to open a prefilled email to Rahbar. Include the email address you use to sign in to ChatGPT, then send the request. Rahbar reviews requests individually and may invite you to play. Sending a request does not automatically grant access.
+
+If the button does not open an email app, email **rahbar916@gmail.com** with the subject **RALLY Squash Club access request** and your ChatGPT account email. Once invited, return to **Play RALLY** and sign in with that account.
+
+## How to play
 
 Click the court, or a corner on the placement pad, to choose the first floor bounce. A white dashed trajectory previews the shot; a lime reticle marks its destination. Deep targets produce length; short targets produce drops.
 
@@ -34,6 +43,16 @@ Quick match uses rally scoring, first to 11 and win by two. Solo practice counts
 ## Run locally
 
 Serve `dist/` with any static web server, for example `python -m http.server 8000 --directory dist`, then visit `http://localhost:8000`. WebGL 2 is required. There is no backend, API key, account integration, build step or runtime CDN dependency.
+
+## GitHub and hosting
+
+The play link above opens the game hosted on ChatGPT Sites. Its invitation-only access applies to that hosted Site; the source in this repository can also be run locally.
+
+To approve a request, the owner opens the Site in ChatGPT Sites, selects **Share**, keeps access set to **Only those invited**, and invites the requested email address as a **Viewer**. Requests arrive by email; replying to an email alone does not grant access. See the [official Sites sharing instructions](https://learn.chatgpt.com/docs/sites/publishing-and-sharing).
+
+The included [GitHub Actions workflow](.github/workflows/pages.yml) runs syntax checks and tests on pushes to `main` and pull requests. It does not deploy the game on push.
+
+GitHub Pages publishing is optional: first enable **Settings → Pages → Source → GitHub Actions**, then manually run **Check game and optionally publish Pages** from the **Actions** tab on `main` with **publish_pages** checked. This publishes `dist/` as a separate copy that does not inherit ChatGPT Sites access restrictions. Leave it unchecked to run checks only.
 
 ## Structure
 

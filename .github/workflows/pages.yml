@@ -1,4 +1,4 @@
-name: Check and publish game
+name: Check game and optionally publish Pages
 
 on:
   push:
@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      publish_pages:
+        description: 'Publish a separate GitHub Pages copy (requires Pages setup; no Sites access controls)'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -24,7 +30,8 @@ jobs:
       - run: npm test
 
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # ChatGPT Sites is the primary host. Pages publishing is an explicit opt-in.
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_pages == true && github.ref == 'refs/heads/main'
     needs: check
     runs-on: ubuntu-latest
     permissions:
