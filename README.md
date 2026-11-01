@@ -4,10 +4,10 @@ An original browser squash game with a procedural 3D glass court, articulated at
 
 ## Play online
 
-[![Play RALLY](https://img.shields.io/badge/Play_RALLY-Open_game-9acd32?style=for-the-badge)](https://rally-squash-rahbar.fuzzycoin2.chatgpt.site)
-[![Request access](https://img.shields.io/badge/Request_access-Email_Rahbar-2563eb?style=for-the-badge)](<mailto:rahbar916@gmail.com?subject=RALLY%20Squash%20Club%20access%20request&body=Hi%20Rahbar%2C%0D%0A%0D%0AI'd%20like%20access%20to%20RALLY%20-%20Squash%20Club.%0D%0A%0D%0AMy%20ChatGPT%20account%20email%3A%20%0D%0AName%20(optional)%3A%20%0D%0A%0D%0AGame%3A%20https%3A%2F%2Frally-squash-rahbar.fuzzycoin2.chatgpt.site%0D%0A%0D%0AThank%20you!>)
+[![Play RALLY](https://img.shields.io/badge/Play_RALLY-Open_game-9acd32?style=for-the-badge)](https://rally-squash-rahbar.rahbar916.chatgpt.site)
+[![Request access](https://img.shields.io/badge/Request_access-Email_Rahbar-2563eb?style=for-the-badge)](<mailto:rahbar916@gmail.com?subject=RALLY%20Squash%20Club%20access%20request&body=Hi%20Rahbar%2C%0D%0A%0D%0AI'd%20like%20access%20to%20RALLY%20-%20Squash%20Club.%0D%0A%0D%0AMy%20ChatGPT%20account%20email%3A%20%0D%0AName%20(optional)%3A%20%0D%0A%0D%0AGame%3A%20https%3A%2F%2Frally-squash-rahbar.rahbar916.chatgpt.site%0D%0A%0D%0AThank%20you!>)
 
-**[Open RALLY — Squash Club](https://rally-squash-rahbar.fuzzycoin2.chatgpt.site)** in your browser. No download or local setup is needed.
+**[Open RALLY — Squash Club](https://rally-squash-rahbar.rahbar916.chatgpt.site)** in your browser. No download or local setup is needed.
 
 The hosted game is invitation-only. If you already have access, sign in with the ChatGPT account whose email address was invited.
 
