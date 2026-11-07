@@ -27,6 +27,10 @@ for (const [name, width, height] of [
   await page.locator('#start').click();
   await page.waitForTimeout(1500);
   await page.screenshot({ path: `artifacts/${name}-court.png` });
+  if (name === 'desktop') await page.keyboard.press('Space');
+  else await page.locator('#touch-hit').tap();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `artifacts/${name}-rally.png` });
   const frameTimes = await page.evaluate(
     () =>
       new Promise((resolve) => {

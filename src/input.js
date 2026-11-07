@@ -2,7 +2,11 @@ export function createInput({
   stickElement,
   knob,
   enabled,
-  onHit,
+  onChargeStart,
+  onChargeEnd,
+  onCancel,
+  bindings,
+  arrowsAim,
   onAim,
   onCamera,
   onPause,
@@ -13,6 +17,7 @@ export function createInput({
     stick = { x: 0, z: 0 };
   function reset() {
     keys.clear();
+    onCancel?.();
     if (pointer !== null && stickElement.hasPointerCapture(pointer))
       stickElement.releasePointerCapture(pointer);
     pointer = null;
@@ -51,33 +56,46 @@ export function createInput({
       }
     });
   document.addEventListener('keydown', (e) => {
-    if (['Escape', 'KeyP'].includes(e.code)) {
-      if (!e.repeat) onPause(e);
+    if (
+      e.target.closest('input,select,textarea') ||
+      e.metaKey ||
+      e.altKey ||
+      e.ctrlKey
+    )
+      return;
+    const mapping = bindings();
+    const action = Object.keys(mapping).find(
+      (name) => mapping[name] === e.code,
+    );
+    if (e.code === 'Escape' || action === 'pause') {
+      if (!e.repeat) {
+        if (e.code !== 'Escape') e.preventDefault();
+        onPause(e);
+      }
       return;
     }
-    if (!enabled() || e.target.closest('input,select,textarea')) return;
+    if (!enabled()) return;
     if (
-      ['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(
-        e.code,
-      )
+      action ||
+      e.code.startsWith('Arrow') ||
+      ['Digit1', 'Digit2', 'Digit3'].includes(e.code)
     )
       e.preventDefault();
     keys.add(e.code);
     if (e.repeat) return;
-    const shots = {
-      KeyZ: 'drive',
-      KeyC: 'cross',
-      KeyE: 'drop',
-      KeyQ: 'lob',
-      KeyB: 'boast',
-    };
-    if (e.code === 'Space') onHit();
-    else if (shots[e.code]) onHit(shots[e.code]);
-    else if (e.code === 'KeyV') onCamera();
+    if (
+      action === 'swing' ||
+      ['drive', 'cross', 'drop', 'lob', 'boast'].includes(action)
+    ) {
+      onChargeStart(e.code, action === 'swing' ? null : action);
+    } else if (action === 'camera') onCamera();
     else if (['Digit1', 'Digit2', 'Digit3'].includes(e.code))
       onAim(Number(e.code.slice(-1)) - 2);
   });
-  document.addEventListener('keyup', (e) => keys.delete(e.code));
+  document.addEventListener('keyup', (e) => {
+    keys.delete(e.code);
+    onChargeEnd(e.code);
+  });
   window.addEventListener('blur', () => {
     reset();
     onBlur();
@@ -91,16 +109,28 @@ export function createInput({
   });
   return {
     reset,
-    sample: () => ({
-      x:
-        Number(keys.has('KeyD') || keys.has('ArrowRight')) -
-        Number(keys.has('KeyA') || keys.has('ArrowLeft')) +
-        stick.x,
-      z:
-        Number(keys.has('KeyS') || keys.has('ArrowDown')) -
-        Number(keys.has('KeyW') || keys.has('ArrowUp')) +
-        stick.z,
-      recover: keys.has('KeyR'),
-    }),
+    sample: () => {
+      const mapping = bindings();
+      const held = (action) => keys.has(mapping[action]);
+      const arrowX =
+        Number(keys.has('ArrowRight')) - Number(keys.has('ArrowLeft'));
+      const arrowZ =
+        Number(keys.has('ArrowDown')) - Number(keys.has('ArrowUp'));
+      return {
+        x:
+          Number(held('right')) -
+          Number(held('left')) +
+          stick.x +
+          (arrowsAim() ? 0 : arrowX),
+        z:
+          Number(held('back')) -
+          Number(held('forward')) +
+          stick.z +
+          (arrowsAim() ? 0 : arrowZ),
+        aimX: arrowsAim() ? arrowX : 0,
+        aimZ: arrowsAim() ? arrowZ : 0,
+        recover: held('recover'),
+      };
+    },
   };
 }

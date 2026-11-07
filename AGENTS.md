@@ -6,3 +6,5 @@
 - Run npm run lint, npm run format:check, npm test, and npm run build before committing.
 - Keep simulation independent of the browser. Add meaningful regression tests for gameplay changes.
 - Keep the hosted Site invitation-only. GitHub Pages publishing is manual.
+- Commit only when the user explicitly asks. Show the commit summary and wait for the user's publication decision before pushing or deploying.
+- Keep commercial research under ignored artifacts/ and out of commits.

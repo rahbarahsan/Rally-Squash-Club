@@ -39,9 +39,11 @@ const result = await page.evaluate(async () => {
       side,
       contact: { x: side * 0.75, y, z: 6.78 },
       swing: 0.48 * (1 - progress),
-      prep: 1,
+      prep: progress === 1 ? 0 : 1,
+      facing: 0,
       stroke: y > 1.3 ? 'volley' : 'ground',
     });
+    if (progress === 1) court.people[0].facing = 0;
     court.render(game, 0);
     court.people[1].group.visible = false;
     court.camera.clearViewOffset();
@@ -50,8 +52,31 @@ const result = await page.evaluate(async () => {
     court.camera.fov = 36;
     court.camera.position.set(2.5, 2.7, 11);
     court.camera.lookAt(0, 1, 7);
+    if (progress === 1) {
+      court.camera.position.set(1.2, 2.1, 3.9);
+      court.camera.lookAt(0, 1.25, 7);
+    }
     court.camera.updateProjectionMatrix();
     court.renderer.render(court.scene, court.camera);
+    // Exercise the exported skin, not only the procedural pose driver.
+    court.people[0].group.traverse((mesh) => {
+      if (!mesh.isSkinnedMesh) return;
+      const point = mesh.position.clone();
+      const positions = mesh.geometry.getAttribute('position');
+      for (let i = 0; i < positions.count; i++) {
+        point.fromBufferAttribute(positions, i);
+        mesh.applyBoneTransform(i, point).applyMatrix4(mesh.matrixWorld);
+        if (
+          ![point.x, point.y, point.z].every(Number.isFinite) ||
+          Math.abs(point.x - p.x) > 2 ||
+          Math.abs(point.z - p.z) > 2.5 ||
+          point.y < -0.2 ||
+          point.y > 2.8
+        ) {
+          throw new Error(`Athlete skin exceeded pose bounds at vertex ${i}`);
+        }
+      }
+    });
   };
   return { modelsLoaded: true };
 });
@@ -61,6 +86,7 @@ for (const [name, side, y, progress] of [
   ['low-lunge', 1, 0.2, 0],
   ['volley', -1, 1.7, 0],
   ['follow-through', 1, 0.8, 0.5],
+  ['front-detail', 1, 1.2, 1],
 ]) {
   await page.evaluate(
     ({ side, y, progress }) => window.reviewPose(side, y, progress),

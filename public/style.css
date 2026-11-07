@@ -1776,3 +1776,510 @@ dialog .text-button {
 #joystick {
   touch-action: none;
 }
+/* Gameplay refinements: compact information, larger court, explicit display controls. */
+.display-button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #79928866;
+  border-radius: 24px;
+  background: #163c36e6;
+  color: var(--cream);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.display-button[aria-pressed='true'] {
+  background: var(--lime);
+  color: var(--ink);
+}
+.display-button:disabled {
+  opacity: 0.6;
+}
+.session-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 12px;
+}
+.session-option select {
+  max-width: 65%;
+  min-height: 40px;
+  padding: 8px;
+  border: 1px solid #78948166;
+  border-radius: 5px;
+  background: #e8eee0;
+  color: #163c36;
+}
+.option-note {
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 6px 0 12px;
+  color: var(--muted);
+}
+.playing .status {
+  top: 145px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  padding: 10px 18px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.playing .status > b {
+  font-size: 21px;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+  margin: 3px 0;
+}
+.playing .status > span {
+  font-size: 8px;
+}
+.playing .status > small {
+  font-size: 11px;
+  margin-top: 4px;
+}
+.contact-feedback {
+  position: absolute;
+  top: 145px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: #112f28ed;
+  color: #f3f5e3;
+  border-left: 3px solid var(--lime);
+  opacity: 0;
+  transition: opacity 0.12s;
+  pointer-events: none;
+  text-align: center;
+  max-width: calc(100% - 24px);
+}
+.contact-feedback.visible {
+  opacity: 1;
+}
+.contact-feedback b {
+  font-size: 13px;
+}
+.contact-feedback span {
+  font-size: 11px;
+  color: #cfdbd1;
+}
+.contact-feedback[data-tone='stretch'],
+.contact-feedback[data-tone='timing'] {
+  border-color: #ffb37b;
+}
+.practice-progress {
+  position: absolute;
+  left: 24px;
+  top: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid #d5fa6844;
+  border-radius: 10px;
+  background: #112f28eb;
+  pointer-events: none;
+}
+.practice-progress b {
+  font-size: 12px;
+  color: var(--lime);
+}
+.practice-progress span {
+  font-size: 20px;
+}
+.practice-progress small {
+  font-size: 10px;
+  color: #cfdbd1;
+}
+.toast {
+  white-space: normal;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  text-align: center;
+  z-index: 15;
+  line-height: 1.5;
+}
+#tutorial-card {
+  top: 145px;
+  left: 24px;
+  transform: none;
+  width: 230px;
+  padding: 12px;
+  font-size: 12px;
+  box-shadow: 0 8px 20px #0002;
+}
+#tutorial-card button {
+  margin-top: 8px;
+  min-height: 44px;
+  padding: 9px 14px;
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  .header-actions {
+    gap: 4px;
+  }
+  .header {
+    left: 12px;
+    right: 12px;
+  }
+  .header .icon-button {
+    width: 40px;
+    height: 44px;
+  }
+  .display-button {
+    padding: 0 10px;
+    font-size: 11px;
+  }
+  .playing .status {
+    top: 139px;
+    padding: 8px 12px;
+  }
+  .playing .status > b {
+    font-size: 18px;
+  }
+  .playing .status > span {
+    display: none;
+  }
+  .playing .status > small {
+    font-size: 10px;
+  }
+  .contact-feedback {
+    top: 139px;
+    padding: 8px 12px;
+  }
+  #tutorial-card {
+    top: 139px;
+    left: 12px;
+    width: calc(100% - 24px);
+    padding: 10px 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  #tutorial-text {
+    flex: 1;
+  }
+  #tutorial-card button {
+    margin: 0;
+    flex-shrink: 0;
+  }
+  .practice-progress {
+    top: 139px;
+    left: 12px;
+    right: 12px;
+    padding: 6px 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .practice-progress span {
+    font-size: 16px;
+  }
+  .practice-progress small {
+    font-size: 9px;
+  }
+  .has-challenge .status,
+  .has-challenge .contact-feedback {
+    top: 185px;
+  }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  .playing .hud {
+    top: max(8px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left));
+    transform: none;
+  }
+  .playing .scoreboard {
+    padding: 7px 12px;
+    gap: 14px;
+  }
+  .playing .score-person {
+    gap: 6px;
+  }
+  .playing .score-person b {
+    font-size: 23px;
+  }
+  .playing .game-stats {
+    display: none;
+  }
+  .playing .header {
+    right: max(12px, env(safe-area-inset-right));
+  }
+  .playing .header-actions {
+    gap: 3px;
+  }
+  .playing .icon-button {
+    width: 40px;
+    height: 42px;
+  }
+  .playing .display-button {
+    min-height: 42px;
+    padding: 0 10px;
+  }
+  .playing .status {
+    top: 60px;
+    padding: 6px 12px;
+  }
+  .playing .status > span {
+    display: none;
+  }
+  .playing .status > b {
+    display: inline;
+    font-size: 16px;
+  }
+  .playing .status > small {
+    font-size: 10px;
+  }
+  .contact-feedback {
+    top: 60px;
+    padding: 6px 12px;
+  }
+  .contact-feedback span {
+    display: none;
+  }
+  .playing .game-controls {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 110px;
+    right: 110px;
+  }
+  .playing .shot-panel > .tiny-label {
+    display: none;
+  }
+  .playing .shot-buttons {
+    gap: 4px;
+  }
+  .playing .shot-buttons button {
+    min-width: 48px;
+    padding: 8px 10px;
+    min-height: 44px;
+    font-size: 11px;
+  }
+  .playing #advanced-shots {
+    min-height: 44px;
+    padding: 8px;
+    font-size: 11px;
+  }
+  .playing .shot-buttons kbd {
+    display: none;
+  }
+  .playing .touch-controls {
+    left: max(14px, env(safe-area-inset-left));
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  .playing #touch-hit {
+    width: 78px;
+    height: 78px;
+  }
+  #tutorial-card {
+    top: 66px;
+    left: max(12px, env(safe-area-inset-left));
+    width: 174px;
+    padding: 10px;
+    font-size: 11px;
+  }
+  .practice-progress {
+    top: 66px;
+    left: max(12px, env(safe-area-inset-left));
+    width: 160px;
+    padding: 8px 10px;
+  }
+  .toast {
+    top: 60px;
+  }
+}
+@media (max-height: 600px) and (max-width: 720px) and (orientation: landscape) {
+  .playing .hud {
+    left: 8px;
+  }
+  .playing .scoreboard {
+    gap: 8px;
+    padding: 6px 8px;
+  }
+  .playing .score-divider {
+    min-width: 60px;
+  }
+  .playing .header {
+    right: 8px;
+  }
+  .playing #sound,
+  .playing #help {
+    display: none;
+  }
+  .playing .game-controls {
+    left: 95px;
+    right: 95px;
+    gap: 4px;
+  }
+  .playing .shot-buttons button {
+    padding: 6px;
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-feedback {
+    transition: none;
+  }
+}
+#touch-recover {
+  position: absolute;
+  right: 0;
+  bottom: 106px;
+  min-width: 88px;
+  min-height: 44px;
+  border: 1px solid #d5fa6866;
+  border-radius: 10px;
+  color: var(--cream);
+  background: #163c36ed;
+  font-size: 12px;
+  touch-action: manipulation;
+}
+.left-handed #touch-recover {
+  right: auto;
+  left: 0;
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  #touch-recover {
+    bottom: 88px;
+    min-width: 78px;
+    font-size: 11px;
+  }
+}
+/* All shot types are directly available when the screen has room. */
+.advanced-shot {
+  display: flex !important;
+}
+#advanced-shots {
+  display: none;
+}
+.key-bindings {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 14px;
+  margin: 12px 0;
+}
+.key-bindings > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  font-size: 11px;
+}
+.key-bindings button {
+  min-width: 48px;
+  min-height: 40px;
+  border: 1px solid #82978a;
+  border-radius: 5px;
+  padding: 6px;
+  background: #e8eee0;
+  color: #163c36;
+}
+.power-meter {
+  position: absolute;
+  left: 50%;
+  bottom: 150px;
+  transform: translateX(-50%);
+  width: 210px;
+  background: #102c29ed;
+  color: #f3f5e3;
+  border: 1px solid #d5fa6844;
+  border-radius: 9px;
+  padding: 9px 12px;
+  pointer-events: none;
+}
+.power-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+.power-caption b {
+  letter-spacing: 1px;
+  font-size: 9px;
+}
+.power-track {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #517162;
+}
+#power-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #c7f46a, #f0d16b);
+}
+.power-meter small {
+  display: block;
+  font-size: 10px;
+  color: #cfdbd1;
+  margin-top: 6px;
+}
+@media (max-width: 900px) {
+  .playing:not(.advanced-shots) .advanced-shot {
+    display: none !important;
+  }
+  #advanced-shots {
+    display: block;
+  }
+  .key-bindings {
+    grid-template-columns: 1fr;
+  }
+  .power-meter {
+    bottom: 233px;
+    width: 185px;
+    padding: 7px 10px;
+  }
+  .advanced-shots .power-meter {
+    bottom: 289px;
+  }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  .power-meter {
+    bottom: 60px;
+    width: 175px;
+    padding: 5px 9px;
+  }
+  .advanced-shots .power-meter {
+    bottom: 60px;
+  }
+  .power-meter small {
+    display: none;
+  }
+  .power-caption {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+}
+@media (min-width: 2000px) and (min-height: 900px) {
+  .power-meter {
+    width: 270px;
+  }
+  .power-caption,
+  .power-meter small {
+    font-size: 13px;
+  }
+  .playing .shot-buttons button {
+    font-size: 16px;
+    min-height: 52px;
+  }
+}
+/* Expanded clubhouse settings remain reachable with mouse, touch, or keyboard. */
+.menu {
+  max-height: calc(100svh - max(150px, 20svh));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding-right: 8px;
+}
+#touch-hit:disabled {
+  opacity: 0.45;
+}

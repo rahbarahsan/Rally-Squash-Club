@@ -81,3 +81,38 @@ test('135 representative shot situations reach the intended floor region', () =>
           assert.ok(Math.abs(p.landing.z - p.target.z) < 0.18);
         }
 });
+
+test('upper and lower arms keep the same bend plane throughout a swing', () => {
+  const athlete = new Athlete(
+    new T.Scene(),
+    0xffffff,
+    'YOU',
+    () => new T.Texture(),
+  );
+  const game = new SquashGame();
+  const p = game.players[0];
+  p.x = p.z = 0;
+  for (const side of [-1, 1])
+    for (const y of [0.2, 0.8, 1.7]) {
+      p.side = side;
+      p.prep = 1;
+      p.contact = { x: side * 0.75, y, z: -0.22 };
+      for (let frame = 0; frame < 48; frame++) {
+        p.swing = 0.48 - frame / 100;
+        athlete.update(p, p.contact, 1 / 120, true);
+        for (const arm of athlete.arms) {
+          const upper = new T.Vector3(1, 0, 0).applyQuaternion(
+            arm.upper.quaternion,
+          );
+          const lower = new T.Vector3(1, 0, 0).applyQuaternion(
+            arm.lower.quaternion,
+          );
+          assert.ok(
+            upper.dot(lower) > 0.999,
+            'The elbow must not introduce an axial twist',
+          );
+          assert.ok(Math.abs(arm.upper.quaternion.length() - 1) < 1e-6);
+        }
+      }
+    }
+});

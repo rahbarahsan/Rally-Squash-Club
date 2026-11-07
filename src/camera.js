@@ -27,30 +27,33 @@ export function frameCourt(
   expanded = false,
 ) {
   const portrait = width / height < 0.95,
-    compact = width < 760;
+    compact = width < 760,
+    landscape = !portrait && height < 600;
   camera.aspect = width / height;
   camera.fov = 45;
   camera.zoom = 1;
   camera.clearViewOffset();
   camera.position.set(
     0,
-    tactical ? 13.5 : portrait ? 10 : 4,
-    tactical ? 14.5 : portrait ? 15 : 13,
+    tactical ? 13.5 : portrait ? 10 : landscape ? 3.1 : 4,
+    tactical ? 14.5 : portrait ? 15 : landscape ? 15.5 : 13,
   );
   camera.lookAt(0, 1.2, 4.6);
   camera.updateProjectionMatrix();
   const rect = {
     left: -0.96,
     right: 0.96,
-    top: 1 - 2 * (portrait ? 0.17 : 0.105),
+    top: 1 - 2 * (portrait ? 0.17 : landscape ? 0.16 : 0.105),
     bottom:
       -1 +
       2 *
         (portrait
           ? 0.27 + (expanded ? 0.07 : 0)
-          : compact || height < 600
-            ? 0.23
-            : 0.12),
+          : landscape
+            ? 0.16
+            : compact
+              ? 0.23
+              : 0.12),
   };
   let b = projectBounds(camera);
   camera.zoom = Math.min(

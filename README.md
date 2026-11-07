@@ -19,18 +19,28 @@ If the button does not open an email app, email **rahbar916@gmail.com** with the
 
 Click the court, or a corner on the placement pad, to choose the first floor bounce. A white dashed trajectory previews the shot; a lime reticle marks its destination. Deep targets produce length; short targets produce drops.
 
-- **Space**: serve or swing the selected shot. An early swing request attempts a volley.
-- **Z / C / E / Q / B**: straight length / crosscourt / drop / lob / boast.
+- **Hold and release Space**: charge and swing the selected shot. More power sends the ball deeper; incoming pace and contact timing also affect placement.
+- **Hold and release Z / C / E / Q / B**: select and charge straight length / crosscourt / drop / lob / boast.
 - **1 / 2 / 3**: left placement / natural shot placement / right placement.
-- **WASD or arrow keys**: move manually. **Hold R** to recover to the T.
+- **WASD**: move manually. **Hold R** to recover to the T. **Arrow keys** aim the landing target by default.
 - **V**: courtside or tactical camera. **Esc / P**: pause.
 - Touch screens have Serve/Swing, shot buttons, tap-to-place aiming, and an optional movement joystick.
+
+Use **Customize keyboard** in the clubhouse to change action keys, restore defaults, or use arrow keys for movement. Assigning an occupied key swaps the two actions. Shot buttons select without swinging; hold and release Serve/Swing for power. Swing assist waits while you charge, and otherwise helps with automatic returns.
 
 Swing assist and assisted footwork are enabled by default. Footwork positions the body beside the ball, then recovers toward the T. Manual input always overrides assistance; either assist can be disabled in the clubhouse. Orange marks the live ball, its trail and the predicted incoming bounce. The outlined ball maintains a minimum visible screen size even at the front wall.
 
 Quick match uses rally scoring, first to 11 and win by two. Solo practice counts returns and resets. Best rally is stored locally in the browser. Rookie play is slower and the AI reacts later; higher levels improve speed, reaction and volley decisions. AI timing has finite precision, especially on stretched returns.
 
-## What changed in version 3
+## What changed in version 3.1
+
+- Hold/release power controls, persistent key remapping, and optional arrow aiming.
+- Distinct court impacts with reflections and more varied AI shots by level and playing style.
+- Landscape control, compact overlays, every shot visible on larger screens, and bounded 4K rendering.
+- Refined athlete proportions, connected limbs and clothing, and longer sports shorts that follow lunges.
+- Deep-target, rally, and recovery challenges with local bests.
+
+## Version 3 foundations
 
 - Assisted mobile controls with separate shot selection and swing, optional joystick movement, left-handed placement, and advanced shots.
 - An interactive first-rally guide that advances when you perform each task.
@@ -43,7 +53,7 @@ Quick match uses rally scoring, first to 11 and win by two. Solo practice counts
 
 Use Node.js 24. Run `npm ci`, `npm run build`, then `npm run dev` and open `http://127.0.0.1:8000`. WebGL 2 is required. The built game is static and has no backend, API key, or runtime CDN dependency. See [CONTRIBUTING.md](CONTRIBUTING.md) for development commands and [the development guide](docs/development.md) for architecture, Blender exports, and release checks.
 
-On mobile, tap the court to aim, select a shot, and tap **Serve/Swing**. Shot buttons select without swinging. Automatic footwork is the default; **Controls & graphics** offers manual movement, left-handed controls, and quality presets. **More shots** reveals Lob and Boast.
+On mobile, tap the court to aim, select a shot, and hold/release **Serve/Swing**. Automatic footwork is the default; **Controls & graphics** offers manual movement, left-handed controls, and quality presets. **More shots** reveals Lob and Boast on compact screens. Larger screens show all five shots directly. Landscape requests rotation where the browser supports it and provides manual-rotation guidance otherwise.
 
 ## GitHub and hosting
 

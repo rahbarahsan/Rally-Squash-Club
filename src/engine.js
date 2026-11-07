@@ -1,4 +1,6 @@
 // Fixed-step squash simulation. Coordinates and velocities are metres and seconds.
+import { OPPONENTS, chooseTacticalShot } from './tactics.js?v=3.1.0';
+import { poweredTarget, contactPower } from './strike.js?v=3.1.0';
 export const COURT = {
   halfWidth: 3.2,
   length: 9.75,
@@ -12,7 +14,7 @@ export const LEVELS = {
   pro: { speed: 5.2, reach: 1.1, reaction: 0.15, timeScale: 1 },
 };
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-export const strikeCrouch = (y) => 0.23 + clamp((0.8 - y) * 0.35, 0, 0.25);
+export const strikeCrouch = (y) => 0.07 + clamp((1.05 - y) * 0.38, 0, 0.36);
 const R = 0.065,
   G = 9.81,
   FRONT = 0.94,
@@ -97,6 +99,7 @@ export function planShot(
   aim = 0,
   custom = null,
   serve = false,
+  power = null,
 ) {
   const sourceSide = sideOf(ball.x);
   let side = aim || (shot === 'cross' || serve ? -sourceSide : sourceSide);
@@ -110,6 +113,8 @@ export function planShot(
           ? 8.35
           : 7.65;
   let target = { x: side * (shot === 'drop' ? 2.84 : 2.8), z: depth };
+  if (serve && Number.isFinite(power))
+    target.z = clamp(8.05 + (power - 0.6) * 2, 6.8, 8.7);
   if (custom && !serve)
     target = { x: clamp(custom.x, -2.95, 2.95), z: clamp(custom.z, 0.9, 8.7) };
   const boast = shot === 'boast' && !serve;
@@ -185,6 +190,7 @@ export class SquashGame {
     mode = 'match',
     assist = true,
     footwork = true,
+    opponent = 'balanced',
     rng = Math.random,
   } = {}) {
     this.level = LEVELS[difficulty] || LEVELS.rookie;
@@ -192,6 +198,7 @@ export class SquashGame {
     this.mode = mode;
     this.assist = assist;
     this.footwork = footwork;
+    this.opponent = OPPONENTS[opponent] ? opponent : 'balanced';
     this.rng = rng;
     this.players = [newPlayer(-1.6, 6.7), newPlayer(1.5, 6.4)];
     this.score = [0, 0];
@@ -245,6 +252,9 @@ export class SquashGame {
     this.aiTimer = 0;
     this.playerTimer = 0;
     this.emit('ready', { server: this.server });
+    this.charging = false;
+    this.pendingStrike = null;
+    this.aiHistory = this.aiHistory || { shot: null, count: 0 };
   }
   setShot(shot) {
     if (['drive', 'cross', 'drop', 'lob', 'boast'].includes(shot)) {
@@ -261,13 +271,33 @@ export class SquashGame {
     this.shot = z < 3.5 ? 'drop' : 'drive';
   }
   shotPlan() {
-    return planShot(
+    const plan = planShot(
       this.ball,
       this.shot,
       this.aim,
       this.customTarget,
       this.phase === 'ready',
+      this.charging ? this.chargePower : null,
     );
+    if (!this.charging || this.phase === 'ready') return plan;
+    return planShot(
+      this.ball,
+      this.shot,
+      this.aim,
+      poweredTarget(
+        plan.target,
+        this.shot,
+        contactPower(this.chargePower ?? 0.6, this.ball),
+      ),
+    );
+  }
+  nudgeTarget(x, z, dt) {
+    if (this.paused || !['ready', 'rally'].includes(this.phase)) return;
+    const target = this.customTarget || this.shotPlan().target;
+    this.customTarget = {
+      x: clamp(target.x + x * dt * 3.5, -2.95, 2.95),
+      z: clamp(target.z + z * dt * 4.5, 0.9, 8.7),
+    };
   }
   canHit(id) {
     if (
@@ -292,9 +322,14 @@ export class SquashGame {
       Math.hypot(b.x - sx, b.y - (1.46 - strikeCrouch(b.y)), b.z - sz) < 1.205
     );
   }
-  requestShot(shot = null) {
+  requestShot(shot = null, power = null) {
     if (this.paused || this.phase === 'over') return false;
+    if (this.phase === 'point') return false;
     if (shot) this.setShot(shot);
+    this.charging = false;
+    this.pendingStrike = Number.isFinite(power)
+      ? { power: clamp(power, 0.35, 1), released: this.elapsed }
+      : null;
     if (this.phase === 'ready' && this.server === 0) {
       this.launch(0, 'drive', true);
       return true;
@@ -306,24 +341,21 @@ export class SquashGame {
       this.launch(0, this.shot);
       return true;
     }
+    this.emit('swing-feedback', {
+      reason: this.turn !== 0 || !this.ball.frontHit ? 'early' : 'queued',
+    });
     return false;
   }
   chooseAIShot() {
-    const me = this.players[1],
-      other = this.players[0],
-      b = this.ball,
-      roll = this.rng();
-    const stretched = Math.hypot(b.x - me.x, b.z - me.z) > 0.95;
-    if (b.z > 7.8 && (stretched || b.y < 0.4)) return 'lob';
-    if (b.z < 4.8 && other.z > 6.3 && b.y > 0.45 && roll < 0.64) return 'drop';
-    if (b.z > 5.8 && other.z > 6.6 && roll < 0.13) return 'boast';
-    if (
-      sideOf(other.x) === sideOf(b.x) &&
-      Math.abs(other.x) > 1.1 &&
-      roll < 0.65
-    )
-      return 'cross';
-    return roll > 0.83 ? 'cross' : 'drive';
+    return chooseTacticalShot(
+      this.opponent,
+      this.players[1],
+      this.players[0],
+      this.ball,
+      this.rng(),
+      this.difficulty,
+      this.aiHistory,
+    );
   }
   launch(id, shot = 'drive', serve = false) {
     const b = this.ball,
@@ -334,16 +366,35 @@ export class SquashGame {
       id === 0 ? this.aim : 0,
       id === 0 ? this.customTarget : null,
       serve,
+      id === 0 ? this.pendingStrike?.power : null,
     );
     let quality = 1;
-    if (id === 0 && !this.assist && !serve) {
+    const strike = id === 0 ? this.pendingStrike : null;
+    const timing =
+      strike && !serve
+        ? clamp(
+            1 -
+              (this.elapsed - strike.released) * 0.6 -
+              (b.bounces > 0 && b.y < 0.35 && b.vy < 0 ? 0.15 : 0),
+            0.6,
+            1,
+          )
+        : 1;
+    if (strike && !serve)
+      plan = planShot(
+        b,
+        shot,
+        this.aim,
+        poweredTarget(plan.target, shot, contactPower(strike.power, b), timing),
+      );
+    if (id === 0 && (!this.assist || strike) && !serve) {
       const stretch = clamp(
         (Math.hypot(b.x - p.x, b.z - p.z) - 0.72) / 0.46,
         0,
         1,
       );
       const moving = clamp(Math.hypot(p.vx, p.vz) / 5.8, 0, 1);
-      quality = 1 - 0.22 * stretch - 0.08 * moving;
+      quality = (1 - 0.22 * stretch - 0.08 * moving) * timing;
       if (quality < 0.97) {
         // A stretched return lands less tightly and shorter, but remains physically planned.
         const target = {
@@ -355,6 +406,19 @@ export class SquashGame {
         };
         plan = planShot(b, shot, this.aim, target, false);
       }
+    }
+    if (id === 1 && !serve) {
+      const spread =
+        { rookie: 0.65, club: 0.3, pro: 0.12 }[this.difficulty] || 0.3;
+      const target = {
+        x: plan.target.x * (1 - this.rng() * spread * 0.25),
+        z: clamp(plan.target.z + (this.rng() - 0.5) * spread, 0.9, 8.7),
+      };
+      plan = planShot(b, shot, 0, target);
+      this.aiHistory = {
+        shot,
+        count: this.aiHistory?.shot === shot ? this.aiHistory.count + 1 : 1,
+      };
     }
     p.stroke = serve ? 'serve' : b.bounces === 0 ? 'volley' : 'ground';
     p.side = b.x - p.x < 0 ? -1 : 1;
@@ -381,7 +445,8 @@ export class SquashGame {
     this.players[1 - id].volley =
       1 - id === 1
         ? this.rng() <
-          ({ rookie: 0.08, club: 0.28, pro: 0.55 }[this.difficulty] || 0.28)
+          ({ rookie: 0.08, club: 0.28, pro: 0.55 }[this.difficulty] || 0.28) *
+            OPPONENTS[this.opponent].volley
         : false;
     this.lastShot = { id, shot, target: plan.target };
     this.aiTarget = null;
@@ -389,6 +454,7 @@ export class SquashGame {
     this.aiTimer = 0;
     this.playerTimer = 0;
     this.buffer = 0;
+    this.pendingStrike = null;
     this.emit('hit', {
       id,
       shot,
@@ -396,11 +462,16 @@ export class SquashGame {
       side: p.side,
       target: plan.target,
       quality,
+      volley: p.stroke === 'volley',
+      power: strike?.power ?? 0.6,
+      timing,
     });
   }
   award(winner, reason) {
     if (this.phase !== 'rally') return;
     this.lastWinner = winner;
+    this.charging = false;
+    this.pendingStrike = null;
     this.players.forEach((p, id) => {
       p.reaction = id === winner ? 'win' : 'lose';
       p.swing = 0;
@@ -506,7 +577,23 @@ export class SquashGame {
     this.clock += dt;
     this.elapsed += dt;
     this.sinceHit += dt;
+    const buffered = this.buffer > 0;
     this.buffer = Math.max(0, this.buffer - dt);
+    if (buffered && this.buffer === 0) this.pendingStrike = null;
+    if (
+      buffered &&
+      this.buffer === 0 &&
+      !this.assist &&
+      this.phase === 'rally' &&
+      this.turn === 0
+    ) {
+      this.emit('swing-feedback', {
+        reason:
+          this.ball.bounces > 0 && this.ball.y < 0.35 && this.ball.vy < 0
+            ? 'late'
+            : 'reach',
+      });
+    }
     for (const p of this.players) {
       p.swing = Math.max(0, p.swing - dt);
       p.split = Math.max(0, p.split - dt);
@@ -590,7 +677,7 @@ export class SquashGame {
     });
     if (
       this.canHit(0) &&
-      (this.assist || this.buffer > 0) &&
+      ((this.assist && !this.charging) || this.buffer > 0) &&
       (this.ball.bounces > 0 || this.players[0].volley || !this.footwork)
     )
       this.launch(0, this.shot);
@@ -619,6 +706,7 @@ export class SquashGame {
         this.emit('miss', { id: 1 });
       } else this.launch(1, this.chooseAIShot());
     }
+    const impactSpeed = Math.hypot(this.ball.vx, this.ball.vy, this.ball.vz);
     const result = flightStep(this.ball, dt);
     if (result.fault) {
       this.award(
@@ -633,6 +721,7 @@ export class SquashGame {
         x: this.ball.x,
         y: this.ball.y,
         z: this.ball.z,
+        speed: impactSpeed,
       });
   }
 }

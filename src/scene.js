@@ -1,9 +1,9 @@
 import * as THREE from './vendor/three.module.js';
-import { predictBounce, clamp } from './engine.js?v=3';
-import { frameCourt } from './camera.js?v=3';
-import { Athlete } from './athlete.js?v=3';
-import { attachModel } from './model.js';
-import { updatePath } from './path.js';
+import { predictBounce, clamp } from './engine.js?v=3.1.0';
+import { frameCourt } from './camera.js?v=3.1.0';
+import { Athlete } from './athlete.js?v=3.1.0';
+import { attachModel } from './model.js?v=3.1.0';
+import { updatePath } from './path.js?v=3.1.0';
 const C = { lime: 0xd5fa68, coral: 0xfb9477, ink: 0x163c36, lines: 0xe26e54 };
 const UP = new THREE.Vector3(0, 1, 0);
 export class CourtScene {
@@ -157,6 +157,32 @@ export class CourtScene {
     this.box(0.018, 0.1, 0.008, aimMat, 0, 0, 0.01, this.aimTarget);
     this.aimTarget.rotation.x = -Math.PI / 2;
     this.scene.add(this.aimTarget);
+    this.practiceTargets = new THREE.Group();
+    this.recoveryTarget = new THREE.Group();
+    const targetMaterial = new THREE.MeshBasicMaterial({
+      color: C.lime,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+    });
+    for (const x of [-2.55, 2.55]) {
+      const target = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.3, 2.9),
+        targetMaterial,
+      );
+      target.rotation.x = -Math.PI / 2;
+      target.position.set(x, 0.032, 8.25);
+      this.practiceTargets.add(target);
+    }
+    const recoveryRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.57, 0.65, 48),
+      targetMaterial.clone(),
+    );
+    recoveryRing.material.opacity = 0.7;
+    recoveryRing.rotation.x = -Math.PI / 2;
+    recoveryRing.position.set(0, 0.032, 5.5);
+    this.recoveryTarget.add(recoveryRing);
+    this.scene.add(this.practiceTargets, this.recoveryTarget);
     this.trailMeshes = Array.from({ length: 18 }, (_, i) => {
       const m = new THREE.Mesh(
         new THREE.SphereGeometry(0.045, 6, 4),
@@ -178,8 +204,9 @@ export class CourtScene {
   setQuality(quality) {
     const low = quality === 'low',
       high = quality === 'high';
-    this.renderer.setPixelRatio(
-      Math.min(window.devicePixelRatio, high ? 2 : low ? 1 : 1.5),
+    this.qualityPixelRatio = Math.min(
+      window.devicePixelRatio,
+      high ? 2 : low ? 1 : 1.5,
     );
     this.renderer.shadowMap.enabled = !low;
     const size = high ? 2048 : 1024;
@@ -527,6 +554,13 @@ export class CourtScene {
   resize() {
     this.width = this.container.clientWidth;
     this.height = this.container.clientHeight;
+    // Bound GPU work when a desktop window fills a 4K/TV display.
+    this.renderer.setPixelRatio(
+      Math.min(
+        this.qualityPixelRatio ?? Math.min(window.devicePixelRatio, 2),
+        Math.sqrt(3200000 / Math.max(1, this.width * this.height)),
+      ),
+    );
     this.renderer.setSize(this.width, this.height);
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
@@ -577,6 +611,8 @@ export class CourtScene {
   }
   render(game, dt) {
     this.time += dt;
+    this.practiceTargets.visible = this.inGame && this.drill === 'length';
+    this.recoveryTarget.visible = this.inGame && this.drill === 'recovery';
     this.cameraBlend +=
       (Number(this.inGame) - this.cameraBlend) * Math.min(1, dt * 3);
     const portrait = this.width / this.height < 0.95;
@@ -619,7 +655,7 @@ export class CourtScene {
     const distance = Math.abs(
       this.ball.position.clone().applyMatrix4(this.camera.matrixWorldInverse).z,
     );
-    const pixels = this.width < 760 ? 18 : 17;
+    const pixels = this.width < 760 || this.height < 600 ? 21 : 19;
     const worldSize =
       (pixels * 2 * distance) /
       (this.camera.projectionMatrix.elements[5] * this.height);

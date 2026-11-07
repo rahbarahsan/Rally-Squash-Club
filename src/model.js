@@ -27,7 +27,9 @@ export function animationState(p, game, id) {
 }
 export async function attachModel(athlete, color) {
   try {
-    const gltf = await new GLTFLoader().loadAsync('./models/athlete.glb');
+    const gltf = await new GLTFLoader().loadAsync(
+      './models/athlete.glb?v=3.1.0',
+    );
     const targets = {
       Torso: athlete.torso,
       Shorts: athlete.shorts,

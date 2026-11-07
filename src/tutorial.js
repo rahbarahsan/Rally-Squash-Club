@@ -11,10 +11,10 @@ export class RallyTutorial {
   get text() {
     return (
       [
-        'Serve to start your first rally. Tap Serve, or press Space.',
+        'Serve to start your first rally. Hold and release Serve or your Swing key.',
         'Choose a landing spot: tap the court or one of the four corner targets.',
         'Select Crosscourt or Drop. Selecting a shot does not swing.',
-        'Return a ball. Swing assist helps; tap Swing to attempt an early volley.',
+        'Return a ball. Swing assist helps; hold Swing for power, then release near contact.',
         'Let automatic footwork bring you back toward the T after your return.',
       ][this.step] || 'First rally complete. Keep exploring the angles!'
     );

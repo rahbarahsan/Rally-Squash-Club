@@ -16,7 +16,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23132d2b'/%3E%3Cpath d='M18 48V16h16c18 0 18 23 0 23h-3l15 9H32L18 35' stroke='%23d5fa68' stroke-width='5' fill='none'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="style.css?v=3" />
+    <link rel="stylesheet" href="style.css?v=3.1.0" />
   </head>
   <body>
     <main id="app">
@@ -32,6 +32,14 @@
           <i></i><span>THE GLASS COURT</span><span class="court-no">01</span>
         </div>
         <div class="header-actions">
+          <button
+            class="display-button"
+            id="landscape"
+            aria-pressed="false"
+            title="Use landscape view"
+          >
+            Landscape
+          </button>
           <button
             class="icon-button"
             id="sound"
@@ -94,10 +102,35 @@
             ><button data-level="club" aria-pressed="false">Club</button
             ><button data-level="pro" aria-pressed="false">Pro</button>
           </div>
+          <label class="session-option" id="opponent-option"
+            >Playing style
+            <select id="opponent">
+              <option value="balanced">All-rounder</option>
+              <option value="patient">Length specialist</option>
+              <option value="attacker">Volley attacker</option>
+            </select>
+          </label>
+          <p id="opponent-note" class="option-note">
+            Mixes length with attacking opportunities.
+          </p>
+          <label class="session-option hidden" id="practice-option"
+            >Practice focus
+            <select id="practice-focus">
+              <option value="free">Free practice</option>
+              <option value="length">Deep targets · 5 returns</option>
+              <option value="rally">Rally builder · 10 returns</option>
+              <option value="recovery">Own the T · 5 recoveries</option>
+            </select>
+          </label>
+          <p id="practice-note" class="option-note hidden">
+            Find your rhythm with no finish line.
+          </p>
           <label class="assist-row"
             ><span
               ><b>Swing assist</b
-              ><small>Times contact when the ball is in reach.</small></span
+              ><small
+                >Auto-returns; hold Swing to take control of power.</small
+              ></span
             ><input type="checkbox" id="assist" checked /><span
               class="switch"
             ></span
@@ -106,7 +139,7 @@
             ><span
               ><b>Assisted footwork</b
               ><small
-                >Position, plant, then recover. WASD overrides.</small
+                >Position, plant, then recover. Movement keys override.</small
               ></span
             ><input type="checkbox" id="footwork" checked /><span
               class="switch"
@@ -132,6 +165,25 @@
               </select></label
             ><button id="tutorial" type="button">First rally guide</button>
           </details>
+          <details id="keyboard-settings" class="preferences">
+            <summary>Customize keyboard</summary>
+            <p class="option-note">
+              Choose an action, then press its new key. Occupied keys swap
+              assignments. Esc cancels.
+            </p>
+            <label
+              >Arrow keys
+              <select id="arrow-mode">
+                <option value="aim">Aim the shot</option>
+                <option value="move">Move the player</option>
+              </select></label
+            >
+            <div id="key-bindings" class="key-bindings"></div>
+            <p id="binding-status" role="status" class="option-note"></p>
+            <button id="reset-keys" type="button" class="secondary">
+              Reset keyboard
+            </button>
+          </details>
           <button id="start" class="primary">
             Step on court <span>↗</span>
           </button>
@@ -151,7 +203,7 @@
         <span class="round-arrow">↗</span>
       </div>
       <div id="menu-footer" class="menu-footer">
-        <span>01 / THE GLASS COURT</span><span>COURTSIDE EDITION / 03</span>
+        <span>01 / THE GLASS COURT</span><span>COURTSIDE EDITION / 3.1</span>
       </div>
       <section id="hud" class="hud hidden" aria-label="Match information">
         <div class="scoreboard">
@@ -178,6 +230,17 @@
         ><b id="status-title">Your serve</b
         ><small id="status-detail">Press Space or tap Serve to begin</small>
       </div>
+      <div id="contact-feedback" class="contact-feedback" role="status">
+        <b id="contact-title"></b><span id="contact-detail"></span>
+      </div>
+      <div
+        id="practice-progress"
+        class="practice-progress hidden"
+        role="status"
+      >
+        <b id="practice-title"></b><span id="practice-count"></span
+        ><small id="practice-best"></small>
+      </div>
       <div id="shot-feedback" class="shot-feedback hidden">
         <span>SHOT INTENT</span><b id="shot-intent">Straight length</b
         ><small id="movement-hint">Assisted footwork · WASD to take over</small>
@@ -197,11 +260,12 @@
       </div>
       <div id="game-controls" class="game-controls hidden">
         <div class="keyboard-hint">
-          <span class="keycap">W A S D</span><span>move</span
-          ><span class="keycap">SPACE</span><span>swing</span>
+          <span id="movement-keys" class="keycap">W A S D</span><span>move</span
+          ><span data-action-key="swing" class="keycap">SPACE</span
+          ><span>hold / release</span>
         </div>
         <div class="shot-panel">
-          <span class="tiny-label">SELECT A SHOT · TAP SWING OR SPACE</span>
+          <span class="tiny-label">SELECT SHOT · HOLD SWING FOR POWER</span>
           <div class="shot-buttons">
             <button data-shot="drive" class="active">
               <kbd>Z</kbd> Straight</button
@@ -232,11 +296,27 @@
           </div>
         </div>
       </div>
+      <div
+        id="power-meter"
+        class="power-meter hidden"
+        role="meter"
+        aria-label="Shot power"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+        <div class="power-caption">
+          <b>SHOT POWER</b><span id="power-label">Hold Swing</span>
+        </div>
+        <div class="power-track"><span id="power-fill"></span></div>
+        <small id="aim-hint">Arrows aim · release to hit</small>
+      </div>
       <div id="touch-controls" class="touch-controls hidden">
         <div id="joystick" aria-label="Drag to move">
           <span id="joystick-knob"></span>
         </div>
         <button id="touch-hit">SERVE <span>↗</span></button>
+        <button id="touch-recover" class="hidden">Recover T</button>
       </div>
       <div id="toast" class="toast" role="status"></div>
       <dialog id="help-dialog">
@@ -255,7 +335,7 @@
         </p>
         <div class="help-grid">
           <div>
-            <kbd>CLICK THE COURT / CORNER PAD</kbd><b>Place the ball, clearly</b
+            <kbd>CLICK / TAP THE COURT TO AIM</kbd><b>Place the ball, clearly</b
             ><span
               >Click where you want the first floor bounce. Deep targets produce
               length; short targets produce drops. The dashed line previews your
@@ -263,19 +343,22 @@
             >
           </div>
           <div>
-            <kbd>Z · C · E · Q · B</kbd><b>Build a rally</b
+            <kbd id="shot-shortcuts-help">Z · C · E · Q · B</kbd
+            ><b>Build a rally</b
             ><span
               >Straight length, crosscourt, drop, lob, boast. Straight shots
-              default to the side wall, not the middle. Space swings the
-              selected shot; press early to attempt a volley.</span
+              default to the side wall, not the middle. Hold your Swing key or a
+              shot shortcut to charge; release to swing. More power sends the
+              ball deeper. Late and stretched contact reduces precision.</span
             >
           </div>
           <div>
-            <kbd>WASD / ARROWS · HOLD R</kbd><b>Move with purpose</b
+            <kbd>MOVEMENT / RECOVER TO T</kbd><b>Move with purpose</b
             ><span
               >Assisted footwork positions you beside the ball and recovers to
-              the T. WASD overrides it. Hold R to recover manually, or turn
-              assistance off in the clubhouse.</span
+              the T. Movement keys override it. Hold your Recover key to return
+              manually. Customize all keys in the clubhouse; WASD and R are the
+              defaults.</span
             >
           </div>
           <div>
@@ -310,7 +393,10 @@
         <h2 id="result-title">Well played.</h2>
         <p id="result-detail"></p>
         <div class="result-stats">
-          <div><span>FINAL SCORE</span><b id="result-score"></b></div>
+          <div>
+            <span id="result-score-label">FINAL SCORE</span
+            ><b id="result-score"></b>
+          </div>
           <div><span>LONGEST RALLY</span><b id="result-rally"></b></div>
         </div>
         <button class="primary" id="again">Run it back <span>↗</span></button
@@ -330,6 +416,6 @@
         <b id="tutorial-text"></b><button id="tutorial-skip">Skip guide</button>
       </aside>
     </main>
-    <script type="module" src="game.js?v=3"></script>
+    <script type="module" src="game.js?v=3.1.0"></script>
   </body>
 </html>

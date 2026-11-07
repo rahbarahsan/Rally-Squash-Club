@@ -1,13 +1,25 @@
 import * as THREE from './vendor/three.module.js';
-import { clamp, strikeCrouch } from './engine.js?v=3';
+import { clamp, strikeCrouch } from './engine.js?v=3.1.0';
 const UP = new THREE.Vector3(0, 1, 0),
   v = (x, y, z) => new THREE.Vector3(x, y, z);
 const mix = (a, b, t) => a.clone().lerp(b, t);
-function segment(mesh, a, b) {
+function segment(mesh, a, b, plane = null) {
   const d = b.clone().sub(a);
   mesh.position.copy(a).add(b).multiplyScalar(0.5);
   mesh.scale.y = Math.max(0.001, d.length());
-  mesh.quaternion.setFromUnitVectors(UP, d.normalize());
+  d.normalize();
+  if (plane) {
+    const x = plane.clone().normalize(),
+      z = x.clone().cross(d).normalize();
+    if (z.lengthSq() < 1e-10) {
+      x.set(Math.abs(d.x) < 0.9 ? 1 : 0, 0, Math.abs(d.x) < 0.9 ? 0 : 1);
+      z.copy(x).cross(d).normalize();
+    }
+    x.copy(d).cross(z).normalize();
+    mesh.quaternion.setFromRotationMatrix(
+      new THREE.Matrix4().makeBasis(x, d, z),
+    );
+  } else mesh.quaternion.setFromUnitVectors(UP, d);
 }
 function joint(a, b, l1, l2, bend) {
   const dir = b.clone().sub(a),
@@ -168,7 +180,7 @@ export class Athlete {
         depthTest: false,
       }),
     );
-    this.label.position.y = 2.14;
+    this.label.position.y = 2.04;
     this.label.scale.set(0.55, 0.17, 1);
     this.group.add(this.label);
   }
@@ -202,9 +214,15 @@ export class Athlete {
     const lean = clamp(contact.y < 1 ? 0.1 : 0, 0, 0.1) * lunge;
     this.torso.position.set(0, 1.24 - crouch, -lean);
     this.torso.rotation.x = -lean * 0.8;
+    this.torso.rotation.z = clamp(-p.vx * 0.014, -0.065, 0.065) * (1 - lunge);
+    this.torso.rotation.y = swing
+      ? (p.side || 1) * Math.sin(progress * Math.PI) * 0.12
+      : Math.sin(this.phase * Math.PI * 2) * weight * 0.025;
     this.shorts.position.set(0, 0.85 - crouch, 0);
-    this.neck.position.set(0, 1.61 - crouch, -lean);
-    this.head.position.set(0, 1.79 - crouch, -lean - 0.025);
+    this.neck.position.set(0, 1.575 - crouch, -lean);
+    this.head.position.set(0, 1.71 - crouch, -lean - 0.025);
+    this.head.rotation.y =
+      clamp(Math.atan2(-contact.x, -contact.z), -0.5, 0.5) * (p.prep || 0);
     this.hair.position.copy(this.head.position).y += 0.035;
     this.band.position.copy(this.head.position).y += 0.065;
     this.number.position.y = 1.29 - crouch;
@@ -286,7 +304,19 @@ export class Athlete {
     this.racket.quaternion.setFromUnitVectors(UP, axis);
     this.arms.forEach((arm, i) => {
       const shoulder = v(arm.side * 0.27, 1.46 - crouch, -lean),
-        hand = i === 1 ? wrist : v(-0.38, 1.08 - crouch, -0.3 - lunge * 0.18);
+        hand =
+          i === 1
+            ? wrist
+            : v(
+                -0.38 - lunge * 0.07,
+                1.08 - crouch + lunge * 0.12,
+                -0.3 -
+                  lunge * 0.18 +
+                  Math.sin(this.phase * Math.PI * 2) *
+                    weight *
+                    0.1 *
+                    (1 - lunge),
+              );
       const elbow = joint(
         shoulder,
         hand,
@@ -294,8 +324,13 @@ export class Athlete {
         0.36,
         i === 1 ? v(0.7, -0.5, 0.4) : v(-0.7, -0.5, 0.4),
       );
-      segment(arm.upper, shoulder, elbow);
-      segment(arm.lower, elbow, hand);
+      const plane = elbow
+        .clone()
+        .sub(shoulder)
+        .cross(hand.clone().sub(elbow))
+        .normalize();
+      segment(arm.upper, shoulder, elbow, plane);
+      segment(arm.lower, elbow, hand, plane);
       arm.elbow.position.copy(elbow);
       arm.hand.position.copy(hand);
     });

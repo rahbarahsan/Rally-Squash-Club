@@ -5,7 +5,7 @@ test('two thumbs can move and serve; rotation releases the joystick', async ({
 }) => {
   test.skip(!isMobile, 'Touch input only');
   await page.goto('/');
-  await page.locator('summary').click();
+  await page.locator('summary').first().click();
   await page.locator('#movement').selectOption('manual');
   await page.locator('#start').click();
   const joystick = await page.locator('#joystick').boundingBox(),
@@ -29,8 +29,20 @@ test('two thumbs can move and serve; rotation releases the joystick', async ({
     type: 'touchStart',
     touchPoints: [move, swing],
   });
-  await expect(page.locator('#rally-count')).not.toHaveText('00');
+  await expect(page.locator('#power-meter')).not.toHaveAttribute(
+    'aria-valuenow',
+    '0',
+  );
   await expect(page.locator('#joystick-knob')).not.toHaveAttribute('style', '');
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: 'touchEnd',
+    touchPoints: [],
+  });
+  await expect(page.locator('#rally-count')).not.toHaveText('00');
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [move],
+  });
   await page.setViewportSize({ width: 390, height: 800 });
   await expect(page.locator('#joystick-knob')).toHaveAttribute('style', '');
   await cdp.send('Input.dispatchTouchEvent', {
@@ -42,7 +54,8 @@ test('two thumbs can move and serve; rotation releases the joystick', async ({
 test('advanced shots stay visible inside the viewport', async ({ page }) => {
   await page.goto('/');
   await page.locator('#start').click();
-  await page.locator('#advanced-shots').click();
+  if (await page.locator('#advanced-shots').isVisible())
+    await page.locator('#advanced-shots').click();
   for (const shot of ['drive', 'cross', 'drop', 'lob', 'boast']) {
     const b = await page.locator(`[data-shot="${shot}"]`).boundingBox();
     const v = page.viewportSize();
@@ -58,7 +71,7 @@ test('tutorial advances on serving and aiming, and restart closes it', async ({
   isMobile,
 }) => {
   await page.goto('/');
-  await page.locator('summary').click();
+  await page.locator('summary').first().click();
   await page.locator('#tutorial').click();
   await expect(page.locator('#tutorial-text')).toContainText('Serve to start');
   if (isMobile) await page.locator('#touch-hit').tap();

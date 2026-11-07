@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test('asset failure preserves a playable fallback', async ({ page }) => {
-  await page.route('**/models/athlete.glb', (route) => route.abort());
+  await page.route('**/models/athlete.glb*', (route) => route.abort());
   await page.goto('/');
   await page.locator('#start').click();
   await expect(page.locator('#error')).toBeHidden();
@@ -13,7 +13,7 @@ test('joystick cancellation clears movement and ignores another pointer', async 
 }) => {
   test.skip(!isMobile, 'Desktop uses keyboard movement.');
   await page.goto('/');
-  await page.locator('summary').click();
+  await page.locator('summary').first().click();
   await page.locator('#movement').selectOption('manual');
   await page.locator('#start').click();
   await page.evaluate(() => {
@@ -62,12 +62,12 @@ test('start, select without serving, serve, pause and restart', async ({
 });
 test('preferences persist and guide can be skipped', async ({ page }) => {
   await page.goto('/');
-  await page.locator('summary').click();
+  await page.locator('summary').first().click();
   await page.locator('#left-handed').check();
   await page.locator('#movement').selectOption('manual');
   await page.reload();
   await expect(page.locator('#app')).toHaveClass(/left-handed/);
-  await page.locator('summary').click();
+  await page.locator('summary').first().click();
   await page.locator('#tutorial').click();
   await expect(page.locator('#tutorial-card')).toBeVisible();
   await page.locator('#tutorial-skip').click();
